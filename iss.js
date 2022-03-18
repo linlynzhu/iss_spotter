@@ -22,13 +22,29 @@ const fetchMyIP = function(callback) {
       callback(Error(msg), null);
       return;
     }
-
     // if we get here, all's well and we got the data
-    callback(null, JSON.parse(body));
-
+    const ip = JSON.parse(body).ip;
+    callback(null, ip);
   });
-  
+};
+
+const fetchCoordsByIP = function(ip, callback) {
+  request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    // if non-200 status, assume server error
+    if (response.statusCode !== 200) {
+      const msg = `Status Code ${response.statusCode} when fetching geo coordinates. Response: ${body}`;
+      callback(Error(msg), null);
+      return;
+    }
+    const { latitude, longitude } = JSON.parse(body);
+    callback(null, {latitude, longitude});
+  });
 
 };
 
-module.exports = { fetchMyIP };
+module.exports = {fetchMyIP, fetchCoordsByIP};
+
